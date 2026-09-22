@@ -168,6 +168,38 @@ $php = 'C:\xampp\php\php.exe'
 
 The local `.env` uses the development database and the default demo password `Grace@123`. This password is for local development only and must be replaced before deployment. Never commit `.env` or real credentials.
 
+### Run the simple API
+
+From the `backend` directory, with XAMPP PHP:
+
+```powershell
+$php = 'C:\xampp\php\php.exe'
+& $php -d extension=pdo_pgsql -d extension=pgsql -S 127.0.0.1:8000 -t public
+```
+
+Available development endpoints:
+
+- `POST /api/auth/login` with `{ "username": "adong.grace", "password": "Grace@123" }`
+- `GET /api/tables` to confirm the 17 schema tables
+- `GET /api/seed-status` to view selected seeded row counts
+
+The demo seed is applied with:
+
+```powershell
+$env:PGPASSWORD='1234'
+& 'C:\Program Files\PostgreSQL\18\bin\psql.exe' -h localhost -U postgres -d school_discipline_db -f .\database\seeders\demo_seed.sql
+```
+
+### Run tests
+
+The tests use the real PostgreSQL database and cover table discovery, seeded data, JWT creation, successful login, invalid passwords, and unknown users:
+
+```powershell
+Set-Location .\backend
+$php = 'C:\xampp\php\php.exe'
+& $php -d extension=pdo_pgsql -d extension=pgsql vendor/bin/phpunit --configuration phpunit.xml
+```
+
 ## Business Rules to Implement in Backend
 
 The backend must enforce the following logic:

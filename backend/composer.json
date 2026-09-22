@@ -16,6 +16,6 @@
     }
   },
   "scripts": {
-    "test": "phpunit"
+    "test": "php -d extension=pdo_pgsql -d extension=pgsql vendor/bin/phpunit"
   }
 }
