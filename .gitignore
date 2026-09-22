@@ -5,6 +5,7 @@
 
 # PHP / Laravel
 backend/vendor/
+backend/composer.phar
 backend/storage/*.key
 backend/storage/framework/
 backend/storage/logs/

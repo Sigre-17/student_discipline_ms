@@ -152,6 +152,22 @@ $env:PGPASSWORD='1234'
 & $psql -h localhost -U postgres -d school_discipline_db -c "SELECT current_database(), current_user;"
 ```
 
+## PHP Backend Setup
+
+The backend uses PHP 8.2, Laravel 12, Firebase JWT, and PHPUnit. PHP is expected at `C:\xampp\php\php.exe` on the current Windows development machine.
+
+From PowerShell:
+
+```powershell
+Set-Location .\backend
+Copy-Item .env.example .env
+# Set DB_PASSWORD=1234 in .env for the local PostgreSQL instance.
+$php = 'C:\xampp\php\php.exe'
+& $php -d extension=zip composer.phar install
+```
+
+The local `.env` uses the development database and the default demo password `Grace@123`. This password is for local development only and must be replaced before deployment. Never commit `.env` or real credentials.
+
 ## Business Rules to Implement in Backend
 
 The backend must enforce the following logic:
