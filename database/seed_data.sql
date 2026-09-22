@@ -1,0 +1,2 @@
+-- Development seed data will be added after the backend migration strategy is finalized.
+-- Keep production credentials and real student data out of this file.
