@@ -108,7 +108,7 @@ cd g:\assignment\student_discipline_ms\mobile
 
 ## Mobile Setup (Expo & React Native)
 
-### 📱 What Has Been Configured for Expo
+### What Has Been Configured for Expo
 
 - **Expo App Manifest ([`mobile/app.json`](mobile/app.json)):**  
   Configured the app metadata, slug (`sdms-mobile`), orientation (`portrait`), splash screen theme (`#102a43`), and platform settings for iOS, Android, and Web.
@@ -136,7 +136,7 @@ cd g:\assignment\student_discipline_ms\mobile
 - **Helper Launch Script ([`mobile/start.ps1`](mobile/start.ps1)):**  
   Created a script so you can launch Expo with a simple one-liner.
 
-### 🚀 How to Run the Mobile App with Expo
+### How to Run the Mobile App with Expo
 
 Open a new PowerShell terminal window and run:
 
@@ -146,7 +146,7 @@ npx expo start
 ```
 *(or run `.\start.ps1`)*
 
-### 📲 Testing Options:
+### Testing Options:
 - **On a Physical Phone:** Download the **Expo Go** app from the App Store / Google Play Store, open your phone's camera, and scan the QR code displayed in your terminal.
 - **On Web:** Press `w` in the terminal to preview the mobile UI in your browser.
 - **On Android Emulator:** Press `a` in the terminal.
