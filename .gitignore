@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+#report drafts
+.draft.*
+
 # PHP / Laravel
 backend/vendor/
 backend/composer.phar

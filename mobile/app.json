@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "SDMS Mobile",
+    "slug": "sdms-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#102a43"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#102a43"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

@@ -1,9 +1,9 @@
 # Comprehensive Technical Report — Phase 1: System Architecture, Environment Setup & Database Design
 
 **System Name:** Student Discipline Management System (SDMS)  
-**Document Type:** Detailed Academic & Supervisor Reference Manual (Phase 1)  
+**Document Type:** Detailed Academic & Supervisor Reference Manual (Phase 1 & Mobile Architecture)  
 **Target Audience:** Academic Supervisor, Project Examiners, System Administrators, Software Engineers  
-**Scope:** Operational Background, 3-Tier Architecture, Database Modeling (17 Relational Tables), PostgreSQL Constraints, Security Design, and Seed Data Strategy  
+**Scope:** Operational Background, 3-Tier Architecture, Database Modeling (17 Relational Tables), PostgreSQL Constraints, Mobile Expo Setup, Security Design, and Seed Data Strategy  
 
 ---
 
@@ -13,7 +13,7 @@ Educational institutions—spanning Nursery, Primary, and Secondary school level
 
 The **Student Discipline Management System (SDMS)** is a modern, enterprise-grade, multi-client web and mobile software solution designed to digitize, centralize, and streamline school discipline management end-to-end. 
 
-Phase 1 of this project established the foundational architecture, runtime environment, database schema design, integrity rules, and database seeding strategy. This document provides an exhaustive, non-technical and technical explanation of everything accomplished in Phase 1, detailing **what** was implemented, **why** specific technical choices were made, and **how** each component functions.
+Phase 1 of this project established the foundational architecture, runtime environment, database schema design, integrity rules, mobile Expo setup, and database seeding strategy. This document provides an exhaustive, non-technical and technical explanation of everything accomplished in Phase 1, detailing **what** was implemented, **why** specific technical choices were made, and **how** each component functions.
 
 ---
 
@@ -91,7 +91,7 @@ For non-technical readers, software architecture is best understood using an ana
 
 ## 3. Environment Setup & Technology Stack
 
-The project relies on four core technologies, selected for their stability, security, and industrial popularity:
+The project relies on core enterprise technologies, selected for stability, security, and industrial popularity:
 
 | Technology | Role | Why It Was Chosen |
 |---|---|---|
@@ -99,6 +99,7 @@ The project relies on four core technologies, selected for their stability, secu
 | **PHP 8.2 (XAMPP)** | Backend REST API Server | Fast, lightweight server-side programming language with built-in database connection libraries (PDO) and widespread web hosting compatibility. |
 | **Node.js (v24.x) & npm** | Frontend Runtime & Package Manager | Industry-standard runtime environment for running modern web development tools and installing JavaScript packages. |
 | **Vite (v5.4) & React 18** | Web Frontend Build Tool & Framework | React provides a component-based user interface, while Vite provides lighting-fast compilation and instant hot reloading during development. |
+| **React Native + Expo SDK 51** | Mobile Frontend Framework | Enables rapid cross-platform mobile development for Android, iOS, and Web with real-time phone testing via the Expo Go app. |
 
 ### Step-by-Step Environment Configuration:
 1. **PostgreSQL Installation:** Installed and configured listening on standard port `5432` with database `school_discipline_db`.
@@ -109,6 +110,69 @@ The project relies on four core technologies, selected for their stability, secu
    extension=pgsql
    ```
    This enabled PHP to communicate directly with PostgreSQL via PDO (PHP Data Objects).
+
+---
+
+## 3.1. Mobile Application Infrastructure & Expo Setup
+
+To enable teachers and discipline officers to record incidents on smartphones and tablets while moving around the school compound, the mobile client was configured using **React Native** and **Expo SDK 51**.
+
+```
++-----------------------------------------------------------------------------------+
+|                            MOBILE EXPO INFRASTRUCTURE                             |
+|                                                                                   |
+|  [ Expo Mobile App (App.tsx) ]  <---> [ Smart API Client (client.ts) ]              |
+|                                                |                                  |
+|         +--------------------------------------+----------------------------------+
+|         | (Android Emulator: 10.0.2.2)         | (iOS / Local: 127.0.0.1)         |
+|         |                                      |                                  |
+|         v                                      v                                  |
+|  [ Expo Go via Wi-Fi IP (192.168.x.x) ]  <---> [ PHP API Backend (serve.ps1) ]       |
++-----------------------------------------------------------------------------------+
+```
+
+### 📱 Detailed Mobile Configuration:
+
+1. **Expo App Manifest ([`mobile/app.json`](mobile/app.json)):**  
+   Configured the app metadata, slug (`sdms-mobile`), orientation (`portrait`), splash screen theme (`#102a43`), and platform settings for iOS, Android, and Web.
+
+2. **Package Configuration ([`mobile/package.json`](mobile/package.json)):**  
+   Updated entry point to `expo/AppEntry.js` with standard Expo CLI scripts:
+   - `npm start` $\rightarrow$ `expo start`
+   - `npm run android` $\rightarrow$ `expo start --android`
+   - `npm run ios` $\rightarrow$ `expo start --ios`
+
+3. **Smart Network API Client ([`mobile/src/api/client.ts`](mobile/src/api/client.ts)):**  
+   Built a mobile API client with automatic environment detection:
+   - **Android Emulator:** Automatically connects to `10.0.2.2:8000`
+   - **iOS Simulator / Local:** Connects to `127.0.0.1:8000`
+   - **Expo Go (Physical Phone):** Uses `EXPO_PUBLIC_API_URL` or network Wi-Fi IP (`http://192.168.x.x:8000/api`).
+
+4. **Complete Expo Mobile UI ([`mobile/App.tsx`](mobile/App.tsx)):**  
+   Designed a complete React Native interface for Expo featuring:
+   - **Expo Status Bar integration** (`expo-status-bar`).
+   - **Staff Login Screen** with pre-filled demo hints (`adong.grace` / `Grace@123`).
+   - **Mobile Conduct Dashboard** showing live metrics (Students, Staff, Incidents, Audit Events).
+   - **PostgreSQL Table Inspector** displaying all 17 database tables.
+   - **API Connection Status Badge** showing the active server address.
+
+5. **Helper Launch Script ([`mobile/start.ps1`](mobile/start.ps1)):**  
+   Created a script so developers can launch Expo with a simple one-liner.
+
+### 🚀 How to Run and Test the Mobile App:
+
+Run the following command from the `mobile/` directory:
+```powershell
+cd g:\assignment\student_discipline_ms\mobile
+npx expo start
+```
+*(or run `.\start.ps1`)*
+
+#### 📲 Testing Options Available:
+- **Physical Phone (Expo Go):** Download **Expo Go** from Google Play / App Store, open your phone camera, and scan the terminal QR code.
+- **Web Preview:** Press `w` in the terminal to view in a browser.
+- **Android Emulator:** Press `a` in the terminal.
+- **iOS Simulator (Mac):** Press `i` in the terminal.
 
 ---
 
@@ -354,9 +418,10 @@ SELECT setval(pg_get_serial_sequence('students', 'student_id'), (SELECT MAX(stud
 
 | Milestone Component | Status | Implementation Detail |
 |---|---|---|
-| Architecture Definition | Completed | 3-Tier Client-Server model (React Web + PHP API + PostgreSQL) |
-| Environment Setup | Completed | PHP 8.2 XAMPP, PostgreSQL 18, Node.js 24, Vite 5.4 |
+| Architecture Definition | Completed | 3-Tier Client-Server model (React Web + Expo Mobile + PHP API + PostgreSQL) |
+| Environment Setup | Completed | PHP 8.2 XAMPP, PostgreSQL 18, Node.js 24, Vite 5.4, Expo SDK 51 |
 | Driver Configuration | Completed | `pdo_pgsql` enabled in XAMPP `php.ini` |
 | Relational Schema | Completed | 17 normalized tables with 29 foreign keys created |
+| Mobile Architecture | Completed | Expo manifest (`app.json`), Smart API client (`client.ts`), Expo UI (`App.tsx`), `start.ps1` |
 | Data Safeguards | Completed | `CHECK` constraints, `UNIQUE` rules, and performance indexes |
 | Data Seeding | Completed | Baseline operational test records loaded & sequences aligned |
