@@ -37,6 +37,20 @@ export const api = {
       body: JSON.stringify(credentials),
     }),
 
+  getDashboardStats: () => request('/dashboard/stats'),
+
+  getIncidents: () => request('/incidents'),
+
+  getStudents: () => request('/students'),
+
+  getSanctions: () => request('/sanctions'),
+
+  reportIncident: (data: any) =>
+    request('/incidents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   getTables: () => request('/tables'),
 
   getSeedStatus: () => request('/seed-status'),

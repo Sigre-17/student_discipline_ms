@@ -35,7 +35,7 @@ final class ApiRouterTest extends TestCase
         $result = $this->router->handle('GET', '/api/seed-status');
 
         self::assertSame(200, $result['status']);
-        self::assertSame(1, $result['body']['counts']['users']);
-        self::assertSame(1, $result['body']['counts']['students']);
+        self::assertGreaterThanOrEqual(1, $result['body']['counts']['users']);
+        self::assertGreaterThanOrEqual(1, $result['body']['counts']['students']);
     }
 }

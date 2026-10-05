@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
-  Alert,
+  Platform,
 } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { api, API_BASE_URL } from './src/api/client';
@@ -24,6 +24,23 @@ interface UserSession {
   };
 }
 
+const DEMO_STAFF = [
+  { username: 'adong.grace', label: 'Grace Adong (Head Teacher)' },
+  { username: 'okello.david', label: 'David Okello (Discipline Master)' },
+  { username: 'mugisha.brian', label: 'Brian Mugisha (Class Teacher)' },
+  { username: 'atwine.sarah', label: 'Sarah Atwine (Counsellor)' },
+];
+
+function formatTitle(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export default function App() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [username, setUsername] = useState('adong.grace');
@@ -32,15 +49,18 @@ export default function App() {
   const [error, setError] = useState('');
 
   // Dashboard Data
+  const [activeTab, setActiveTab] = useState<'metrics' | 'incidents'>('metrics');
   const [tables, setTables] = useState<string[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
+  const [incidents, setIncidents] = useState<any[]>([]);
   const [dashLoading, setDashLoading] = useState(false);
 
-  async function handleLogin() {
+  async function handleLogin(userParam?: string) {
+    const userToLogin = userParam || username;
     setError('');
     setLoading(true);
     try {
-      const data = await api.login({ username, password });
+      const data = await api.login({ username: userToLogin, password });
       setSession(data);
     } catch (err: any) {
       setError(err.message || 'Login failed.');
@@ -52,10 +72,11 @@ export default function App() {
   useEffect(() => {
     if (session) {
       setDashLoading(true);
-      Promise.all([api.getTables(), api.getSeedStatus()])
-        .then(([tableData, statusData]) => {
+      Promise.all([api.getTables(), api.getSeedStatus(), api.getIncidents()])
+        .then(([tableData, statusData, incData]) => {
           setTables(tableData.tables || []);
           setCounts(statusData.counts || {});
+          setIncidents(incData.incidents || []);
         })
         .catch((err: any) => {
           setError(err.message || 'Failed to load dashboard data.');
@@ -107,22 +128,30 @@ export default function App() {
 
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleLogin}
+              onPress={() => handleLogin()}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.buttonText}>Sign In to Workspace</Text>
+                <Text style={styles.buttonText}>Sign In</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.demoBox}>
-              <Text style={styles.demoTitle}>Demo Credentials:</Text>
-              <Text style={styles.demoText}>
-                User: <Text style={styles.bold}>adong.grace</Text> | Pass:{' '}
-                <Text style={styles.bold}>Grace@123</Text>
-              </Text>
+              <Text style={styles.demoTitle}>Quick Select Staff Account:</Text>
+              {DEMO_STAFF.map((staff) => (
+                <TouchableOpacity
+                  key={staff.username}
+                  style={styles.demoStaffBtn}
+                  onPress={() => {
+                    setUsername(staff.username);
+                    setPassword('Grace@123');
+                  }}
+                >
+                  <Text style={styles.demoStaffText}>{staff.label}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         </ScrollView>
@@ -135,7 +164,7 @@ export default function App() {
       <ExpoStatusBar style="light" />
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>SDMS Dashboard</Text>
+          <Text style={styles.headerTitle}>SDMS Mobile</Text>
           <Text style={styles.headerUser}>
             {session.user.full_name} ({session.user.role})
           </Text>
@@ -145,28 +174,48 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
+      {/* Mobile Tab Switcher */}
+      <View style={styles.mobileTabBar}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'metrics' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('metrics')}
+        >
+          <Text style={[styles.tabButtonText, activeTab === 'metrics' && styles.tabButtonTextActive]}>
+            Metrics & Tables
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'incidents' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('incidents')}
+        >
+          <Text style={[styles.tabButtonText, activeTab === 'incidents' && styles.tabButtonTextActive]}>
+            Incidents Feed ({incidents.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.dashboardContent}>
         {dashLoading ? (
           <ActivityIndicator size="large" color="#c87845" style={{ marginTop: 40 }} />
-        ) : (
+        ) : activeTab === 'metrics' ? (
           <>
             <Text style={styles.sectionTitle}>Conduct Metrics</Text>
             <View style={styles.metricsGrid}>
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>Students</Text>
-                <Text style={styles.metricVal}>{counts.students ?? '—'}</Text>
+                <Text style={styles.metricVal}>{counts.students ?? 0}</Text>
               </View>
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>Staff</Text>
-                <Text style={styles.metricVal}>{counts.staff ?? '—'}</Text>
+                <Text style={styles.metricVal}>{counts.staff ?? 0}</Text>
               </View>
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>Incidents</Text>
-                <Text style={styles.metricVal}>{counts.incidents ?? '—'}</Text>
+                <Text style={styles.metricVal}>{counts.incidents ?? 0}</Text>
               </View>
               <View style={styles.metricCard}>
                 <Text style={styles.metricLabel}>Audit Events</Text>
-                <Text style={styles.metricVal}>{counts.audit_log ?? '—'}</Text>
+                <Text style={styles.metricVal}>{counts.audit_log ?? 0}</Text>
               </View>
             </View>
 
@@ -174,7 +223,7 @@ export default function App() {
             <View style={styles.tableListCard}>
               {tables.map((tbl) => (
                 <View key={tbl} style={styles.tableRow}>
-                  <Text style={styles.tableName}>{tbl}</Text>
+                  <Text style={styles.tableName}>{formatTitle(tbl)}</Text>
                   <Text style={styles.tableCount}>
                     {counts[tbl] !== undefined ? `${counts[tbl]} rows` : 'Active'}
                   </Text>
@@ -186,6 +235,43 @@ export default function App() {
               <Text style={styles.apiInfoTitle}>API Endpoint Connected:</Text>
               <Text style={styles.apiInfoUrl}>{API_BASE_URL}</Text>
             </View>
+          </>
+        ) : (
+          <>
+            <Text style={styles.sectionTitle}>School Incidents Log</Text>
+            {incidents.map((inc) => (
+              <View key={inc.incident_id} style={styles.incidentCard}>
+                <View style={styles.incidentHeader}>
+                  <Text style={styles.incidentDate}>{inc.incident_date}</Text>
+                  <View
+                    style={[
+                      styles.severityBadge,
+                      inc.severity_level === 'Grave'
+                        ? styles.badgeGrave
+                        : inc.severity_level === 'Serious'
+                        ? styles.badgeSerious
+                        : styles.badgeMinor,
+                    ]}
+                  >
+                    <Text style={styles.severityText}>{inc.severity_level}</Text>
+                  </View>
+                </View>
+                <Text style={styles.incidentCategory}>{inc.category_name}</Text>
+                <Text style={styles.incidentDesc}>{inc.description}</Text>
+                <View style={styles.incidentFooter}>
+                  <Text style={styles.incidentLocation}>📍 {inc.location}</Text>
+                  <Text style={styles.incidentStatus}>{inc.status}</Text>
+                </View>
+                {inc.involved_students_summary ? (
+                  <Text style={styles.incidentStudents}>
+                    Learners: {inc.involved_students_summary}
+                  </Text>
+                ) : null}
+              </View>
+            ))}
+            {incidents.length === 0 && (
+              <Text style={styles.emptyText}>No incidents recorded yet.</Text>
+            )}
           </>
         )}
       </ScrollView>
@@ -206,7 +292,7 @@ const styles = StyleSheet.create({
   },
   brandContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 24,
   },
   brandLogo: {
     width: 56,
@@ -215,7 +301,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2b880',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   brandLogoText: {
     fontSize: 28,
@@ -228,14 +314,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   brandSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#8eafbe',
     marginTop: 4,
   },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 24,
+    padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -250,7 +336,7 @@ const styles = StyleSheet.create({
   cardSub: {
     fontSize: 13,
     color: '#6b8290',
-    marginBottom: 20,
+    marginBottom: 16,
     marginTop: 4,
   },
   label: {
@@ -258,31 +344,31 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#496170',
     marginBottom: 6,
-    marginTop: 12,
+    marginTop: 10,
   },
   input: {
     backgroundColor: '#F4F8F9',
     borderWidth: 1,
     borderColor: '#CBDBE0',
     borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 15,
     color: '#102a43',
   },
   button: {
     backgroundColor: '#c87845',
     borderRadius: 8,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 20,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
   },
   errorBox: {
@@ -290,7 +376,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F8B4A6',
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
     marginBottom: 10,
   },
   errorText: {
@@ -298,31 +384,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   demoBox: {
-    marginTop: 20,
-    paddingTop: 16,
+    marginTop: 16,
+    paddingTop: 14,
     borderTopWidth: 1,
     borderTopColor: '#E5EDEF',
   },
   demoTitle: {
     fontSize: 12,
     color: '#6b8290',
-    fontWeight: '600',
+    fontWeight: '700',
+    marginBottom: 8,
   },
-  demoText: {
+  demoStaffBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    backgroundColor: '#f4f8f9',
+    borderRadius: 6,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#e2edf0',
+  },
+  demoStaffText: {
     fontSize: 12,
-    color: '#496170',
-    marginTop: 2,
-  },
-  bold: {
-    fontWeight: 'bold',
     color: '#102a43',
+    fontWeight: '600',
   },
 
   // Dashboard Styles
   header: {
     backgroundColor: '#102a43',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -340,96 +432,181 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   logoutBtn: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 6,
   },
   logoutText: {
     color: '#FFFFFF',
+    fontSize: 12,
+  },
+
+  mobileTabBar: {
+    flexDirection: 'row',
+    backgroundColor: '#0a1d30',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  tabButtonActive: {
+    backgroundColor: '#173f63',
+  },
+  tabButtonText: {
+    color: '#8eafbe',
     fontSize: 13,
     fontWeight: '600',
   },
+  tabButtonTextActive: {
+    color: '#FFFFFF',
+  },
+
   dashboardContent: {
-    padding: 20,
-    backgroundColor: '#EDF3F6',
+    padding: 16,
+    backgroundColor: '#edf3f6',
     minHeight: '100%',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#102a43',
     marginBottom: 12,
-    marginTop: 8,
   },
   metricsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 16,
+    gap: 10,
+    marginBottom: 20,
   },
   metricCard: {
+    flex: 1,
+    minWidth: '45%',
     backgroundColor: '#FFFFFF',
-    width: '48%',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 14,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#D9E4E8',
+    borderColor: '#dbe5e8',
   },
   metricLabel: {
     fontSize: 12,
-    color: '#6b8290',
-    fontWeight: '600',
+    color: '#597387',
   },
   metricVal: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#102a43',
-    marginTop: 6,
+    marginTop: 4,
   },
   tableListCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#D9E4E8',
+    borderColor: '#dbe5e8',
     marginBottom: 16,
   },
   tableRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F4F6',
+    borderBottomColor: '#f0f4f6',
   },
   tableName: {
     fontSize: 13,
-    color: '#496170',
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#102a43',
   },
   tableCount: {
-    fontSize: 13,
-    color: '#102a43',
-    fontWeight: 'bold',
+    fontSize: 12,
+    color: '#597387',
   },
-  apiInfoBox: {
-    backgroundColor: '#102a43',
-    borderRadius: 10,
+
+  // Incident Feed Cards
+  incidentCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 14,
-    marginTop: 8,
-    marginBottom: 40,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#dbe5e8',
   },
-  apiInfoTitle: {
-    fontSize: 11,
-    color: '#8eafbe',
+  incidentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  incidentDate: {
+    fontSize: 12,
+    color: '#597387',
+    fontWeight: '600',
+  },
+  severityBadge: {
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  badgeMinor: { backgroundColor: '#ebf8ff' },
+  badgeSerious: { backgroundColor: '#feebc8' },
+  badgeGrave: { backgroundColor: '#fed7d7' },
+  severityText: { fontSize: 11, fontWeight: '700', color: '#102a43' },
+  incidentCategory: {
+    fontSize: 15,
     fontWeight: 'bold',
-    textTransform: 'uppercase',
+    color: '#102a43',
+    marginBottom: 4,
   },
-  apiInfoUrl: {
+  incidentDesc: {
     fontSize: 13,
-    color: '#f2b880',
-    marginTop: 4,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    color: '#334e68',
+    lineHeight: 18,
+    marginBottom: 8,
   },
+  incidentFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f4f6',
+  },
+  incidentLocation: { fontSize: 12, color: '#597387' },
+  incidentStatus: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#22543d',
+    backgroundColor: '#c6f6d5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  incidentStudents: {
+    fontSize: 11.5,
+    color: '#c87845',
+    marginTop: 6,
+    fontWeight: '600',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#8eafbe',
+    marginTop: 30,
+    fontSize: 14,
+  },
+
+  apiInfoBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#dbe5e8',
+    marginBottom: 20,
+  },
+  apiInfoTitle: { fontSize: 12, color: '#597387', fontWeight: 'bold' },
+  apiInfoUrl: { fontSize: 12, color: '#c87845', marginTop: 2, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' },
 });

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use PDO;
 use RuntimeException;
+use Throwable;
 
 final class AuthService
 {
@@ -62,5 +64,34 @@ final class AuthService
             'token' => JWT::encode($payload, $this->jwtSecret, 'HS256'),
             'user' => $user,
         ];
+    }
+
+    public function validateToken(string $token): ?array
+    {
+        try {
+            $decoded = (array) JWT::decode($token, new Key($this->jwtSecret, 'HS256'));
+            return $decoded;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    public function logAudit(?int $userId, string $action, string $table, ?string $recordId, string $details): void
+    {
+        try {
+            $stmt = $this->database->prepare(
+                'INSERT INTO audit_log (user_id, action, table_affected, record_id, details)
+                 VALUES (:user_id, :action, :table, :record_id, :details)'
+            );
+            $stmt->execute([
+                'user_id' => $userId,
+                'action' => $action,
+                'table' => $table,
+                'record_id' => $recordId,
+                'details' => $details,
+            ]);
+        } catch (Throwable) {
+            // Audit fail-safe
+        }
     }
 }

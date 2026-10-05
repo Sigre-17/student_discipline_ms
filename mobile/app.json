@@ -10,9 +10,11 @@
       "backgroundColor": "#102a43"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sdms.mobile"
     },
     "android": {
+      "package": "com.sdms.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#102a43"
       }
