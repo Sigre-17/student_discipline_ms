@@ -41,6 +41,25 @@ Authorization is enforced in the backend REST API, not only hidden in the UI.
 
 ---
 
+## Default Test Credentials
+
+All seeded test accounts across all user roles use the default password: **`grace`**
+
+> **Note on Login Identifiers:** The login portal for both Web and Mobile accepts **Username**, **Staff Email**, **Staff ID**, or **Student Admission Number** interchangeably with the password `grace`.
+
+| Role | Staff / User | Username | Email | Staff / Student ID | Default Password | Primary System Capabilities |
+|---|---|---|---|---|---|---|
+| **Administrator** | System Administrator | `admin` | `admin@gulusdms.ac.ug` | `STF-006` | `grace` | Full administrative control, user IAM, database health, audit logs |
+| **Head Teacher** | Grace Adong | `adong.grace` | `g.adong@gulusdms.ac.ug` | `STF-001` | `grace` | School-wide analytics, suspension/expulsion approvals, confidential files |
+| **Deputy Head Teacher** | Agnes Kembabazi | `kembabazi.agnes` | `a.kembabazi@gulusdms.ac.ug` | `STF-005` | `grace` | Disciplinary hearings, investigations, standard sanctions |
+| **Discipline Master** | David Okello | `okello.david` | `d.okello@gulusdms.ac.ug` | `STF-002` | `grace` | Daily incident feed, triage, hearings, investigation oversight |
+| **Counsellor** | Sarah Atwine | `atwine.sarah` | `s.atwine@gulusdms.ac.ug` | `STF-003` | `grace` | Pastoral care sessions, confidential counselling records |
+| **Class Teacher** | Brian Mugisha | `mugisha.brian` | `b.mugisha@gulusdms.ac.ug` | `STF-004` | `grace` | Class conduct tracking, merit awards, individual conduct sheets |
+
+All accounts authenticate statelessly via `POST /api/auth/login` and receive a JWT token valid for 60 minutes. Password visibility can be toggled using the eye icon on both web and mobile login forms.
+
+---
+
 ## Project Architecture
 
 The system follows a classic 3-tier architecture:

@@ -40,6 +40,19 @@ final class ApiRouter
                 return $this->response(['counts' => $this->seedCounts()]);
             }
 
+            // Public: list seeded test user credentials (no passwords) for dev/demo login screen
+            if ($method === 'GET' && $path === '/api/test-credentials') {
+                $stmt = $this->database->query(
+                    "SELECT u.user_id, u.username, u.full_name, u.role, s.email
+                     FROM users u
+                     LEFT JOIN staff s ON s.staff_id = u.linked_id
+                     WHERE u.is_active = TRUE
+                     ORDER BY u.user_id"
+                );
+                $users = $stmt->fetchAll();
+                return $this->response(['credentials' => $users]);
+            }
+
             // Authenticate token for protected routes
             $user = null;
             if ($token !== '') {

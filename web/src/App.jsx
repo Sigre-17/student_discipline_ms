@@ -1,28 +1,42 @@
 import { useEffect, useState } from 'react';
 import { api, setAuthToken } from './api/client';
 import './styles.css';
+import {
+  IconDashboard,
+  IconAlertCircle,
+  IconUsers,
+  IconGavel,
+  IconMessageSquare,
+  IconAward,
+  IconBookOpen,
+  IconShield,
+  IconDatabase,
+  IconPrinter,
+  IconPlus,
+  IconSearch,
+  IconX,
+  IconCheck,
+  IconLogOut,
+} from './components/Icons';
 
-const DEMO_ACCOUNTS = [
-  { username: 'adong.grace', name: 'Grace Adong', role: 'Head Teacher' },
-  { username: 'okello.david', name: 'David Okello', role: 'Discipline Master' },
-  { username: 'atwine.sarah', name: 'Sarah Atwine', role: 'Counsellor' },
-  { username: 'mugisha.brian', name: 'Brian Mugisha', role: 'Class Teacher' },
-  { username: 'admin', name: 'System Admin', role: 'Administrator' },
-];
-
-function formatTitle(text) {
-  if (!text) return '';
-  return text
-    .replace(/[_-]+/g, ' ')
-    .split(' ')
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+function EyeIcon({ open }) {
+  return open ? (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  ) : (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+      <line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  );
 }
 
 function Login({ onLogin }) {
-  const [username, setUsername] = useState('adong.grace');
-  const [password, setPassword] = useState('Grace@123');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +45,7 @@ function Login({ onLogin }) {
     setError('');
     setLoading(true);
     try {
-      const data = await api.login({ username, password });
+      const data = await api.login({ username: identifier, password });
       onLogin(data);
     } catch (requestError) {
       setError(requestError.message);
@@ -40,41 +54,51 @@ function Login({ onLogin }) {
     }
   }
 
-  function pickAccount(acc) {
-    setUsername(acc.username);
-    setPassword('Grace@123');
-  }
-
   return (
     <main className="login-page">
       <form className="login-card" onSubmit={submit}>
         <div className="brand">
           <span className="brand-mark">S</span>
-          <strong>SDMS</strong>
+          <div className="brand-info">
+            <span className="brand-title">SDMS</span>
+            <span className="brand-subtitle">Student Discipline MS</span>
+          </div>
         </div>
-        <div className="eyebrow">School conduct platform</div>
+        <div className="eyebrow">Institutional Access</div>
         <h1>Staff Sign In</h1>
         <p className="login-copy">
-          Access student discipline files, record conduct infractions, issue sanctions, and track counselling sessions.
+          Authorized portal for school administrators, disciplinary officers, counsellors, and teaching staff.
         </p>
 
         <label className="field">
-          Username
+          Email, Username, or Student Number
           <input
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
+            value={identifier}
+            onChange={(event) => setIdentifier(event.target.value)}
             autoComplete="username"
-            placeholder="e.g. adong.grace"
+            placeholder="e.g. adong.grace, email, or student/staff number"
           />
         </label>
-        <label className="field">
+        <label className="field password-field">
           Password
-          <input
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            type="password"
-            autoComplete="current-password"
-          />
+          <div className="password-input-wrap">
+            <input
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder="Enter password"
+            />
+            <button
+              type="button"
+              className="eye-toggle"
+              onClick={() => setShowPassword((v) => !v)}
+              tabIndex={-1}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <EyeIcon open={showPassword} />
+            </button>
+          </div>
         </label>
 
         {error && <div className="error">{error}</div>}
@@ -82,22 +106,6 @@ function Login({ onLogin }) {
         <button className="primary-button" disabled={loading}>
           {loading ? 'Authenticating...' : 'Sign In'}
         </button>
-
-        <div className="demo-hint">
-          <strong>Quick Login as Seeded Staff:</strong>
-          <div className="demo-role-buttons">
-            {DEMO_ACCOUNTS.map((acc) => (
-              <button
-                type="button"
-                key={acc.username}
-                className="demo-role-btn"
-                onClick={() => pickAccount(acc)}
-              >
-                {acc.name} ({acc.role})
-              </button>
-            ))}
-          </div>
-        </div>
       </form>
     </main>
   );
@@ -476,69 +484,72 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand">
           <span className="brand-mark">S</span>
-          <strong>SDMS</strong>
+          <div className="brand-info">
+            <span className="brand-title">SDMS</span>
+            <span className="brand-subtitle">School Administration</span>
+          </div>
         </div>
 
-        <div className="nav-label">Navigation</div>
+        <div className="nav-label">Main Navigation</div>
         <div
           className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          <span className="nav-icon">📊</span> Overview
+          <span className="nav-icon"><IconDashboard size={18} /></span> Overview
         </div>
         <div
           className={`nav-item ${activeTab === 'incidents' ? 'active' : ''}`}
           onClick={() => setActiveTab('incidents')}
         >
-          <span className="nav-icon">🚨</span> Incidents
+          <span className="nav-icon"><IconAlertCircle size={18} /></span> Incidents
         </div>
         <div
           className={`nav-item ${activeTab === 'students' ? 'active' : ''}`}
           onClick={() => setActiveTab('students')}
         >
-          <span className="nav-icon">👨‍🎓</span> Students & Conduct
+          <span className="nav-icon"><IconUsers size={18} /></span> Students & Conduct
         </div>
         <div
           className={`nav-item ${activeTab === 'sanctions' ? 'active' : ''}`}
           onClick={() => setActiveTab('sanctions')}
         >
-          <span className="nav-icon">⚖️</span> Sanctions & Orders
+          <span className="nav-icon"><IconGavel size={18} /></span> Sanctions & Orders
         </div>
         <div
           className={`nav-item ${activeTab === 'counselling' ? 'active' : ''}`}
           onClick={() => setActiveTab('counselling')}
         >
-          <span className="nav-icon">💬</span> Counselling
+          <span className="nav-icon"><IconMessageSquare size={18} /></span> Counselling
         </div>
         <div
           className={`nav-item ${activeTab === 'merits' ? 'active' : ''}`}
           onClick={() => setActiveTab('merits')}
         >
-          <span className="nav-icon">🏆</span> Merits & Commendations
+          <span className="nav-icon"><IconAward size={18} /></span> Merits & Commendations
         </div>
         <div
           className={`nav-item ${activeTab === 'rules' ? 'active' : ''}`}
           onClick={() => setActiveTab('rules')}
         >
-          <span className="nav-icon">📜</span> School Rules
+          <span className="nav-icon"><IconBookOpen size={18} /></span> School Rules
         </div>
         <div
           className={`nav-item ${activeTab === 'audit' ? 'active' : ''}`}
           onClick={() => setActiveTab('audit')}
         >
-          <span className="nav-icon">🛡️</span> Audit Logs
+          <span className="nav-icon"><IconShield size={18} /></span> Audit Logs
         </div>
         <div
           className={`nav-item ${activeTab === 'database' ? 'active' : ''}`}
           onClick={() => setActiveTab('database')}
         >
-          <span className="nav-icon">🗄️</span> Database Schema
+          <span className="nav-icon"><IconDatabase size={18} /></span> Database Schema
         </div>
 
         <div className="sidebar-note">
           <strong>Academic Term:</strong> {stats?.current_term?.term_name || 'Term 3'} (
           {stats?.current_term?.academic_year || '2026'})<br />
-          PostgreSQL Database Connected
+          PostgreSQL Database Active
         </div>
       </aside>
 
@@ -554,13 +565,13 @@ export default function App() {
           </div>
           <div className="topbar-right">
             <button className="btn btn-primary" onClick={() => setModalIncident(true)}>
-              + Report Incident
+              <IconPlus size={15} /> Report Incident
             </button>
             <div className="user-chip">
               <span>{session.user.full_name}</span>
               <span className="user-role-badge">{session.user.role}</span>
-              <button className="logout" onClick={handleLogout}>
-                Log out
+              <button className="logout" onClick={handleLogout} title="Sign out">
+                <IconLogOut size={13} /> Log out
               </button>
             </div>
           </div>
@@ -691,18 +702,21 @@ export default function App() {
                 <div className="metric-sub">Official log of all recorded rule infractions</div>
               </div>
               <button className="btn btn-primary" onClick={() => setModalIncident(true)}>
-                + Record New Incident
+                <IconPlus size={15} /> Record Incident
               </button>
             </div>
 
             {/* Filter Bar */}
             <div className="filter-bar">
-              <input
-                className="search-input"
-                placeholder="Search incident, location, student..."
-                value={incidentSearch}
-                onChange={(e) => setIncidentSearch(e.target.value)}
-              />
+              <div className="search-input-wrapper">
+                <IconSearch size={15} className="search-input-icon" />
+                <input
+                  className="search-input"
+                  placeholder="Search incident, location, student..."
+                  value={incidentSearch}
+                  onChange={(e) => setIncidentSearch(e.target.value)}
+                />
+              </div>
               <div className="filter-group">
                 <select
                   className="select-input"
@@ -826,17 +840,20 @@ export default function App() {
                 <div className="metric-sub">Click any student to view their 360-degree conduct profile</div>
               </div>
               <button className="btn btn-primary" onClick={() => setModalStudent(true)}>
-                + Enroll Student
+                <IconPlus size={15} /> Enroll Student
               </button>
             </div>
 
             <div className="filter-bar">
-              <input
-                className="search-input"
-                placeholder="Search by student name or admission number..."
-                value={studentSearch}
-                onChange={(e) => setStudentSearch(e.target.value)}
-              />
+              <div className="search-input-wrapper">
+                <IconSearch size={15} className="search-input-icon" />
+                <input
+                  className="search-input"
+                  placeholder="Search by student name or admission number..."
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                />
+              </div>
               <select
                 className="select-input"
                 value={studentClassFilter}
@@ -917,7 +934,7 @@ export default function App() {
                 <div className="metric-sub">Issued penalties, detentions, suspensions, and return conditions</div>
               </div>
               <button className="btn btn-primary" onClick={() => setModalSanction(true)}>
-                + Issue Sanction
+                <IconPlus size={15} /> Issue Sanction
               </button>
             </div>
 
@@ -1007,7 +1024,7 @@ export default function App() {
                 session.user.role
               ) && (
                 <button className="btn btn-primary" onClick={() => setModalCounselling(true)}>
-                  + Log Counselling Session
+                  <IconPlus size={15} /> Log Counselling Session
                 </button>
               )}
             </div>
@@ -1064,7 +1081,7 @@ export default function App() {
                 <div className="metric-sub">Positive reinforcement and exemplary conduct tracking</div>
               </div>
               <button className="btn btn-primary" onClick={() => setModalMerit(true)}>
-                + Award Merit Commendation
+                <IconPlus size={15} /> Award Merit
               </button>
             </div>
 
@@ -1237,8 +1254,8 @@ export default function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Record Incident</h3>
-              <button className="modal-close" onClick={() => setModalIncident(false)}>
-                ✕
+              <button className="modal-close" onClick={() => setModalIncident(false)} aria-label="Close modal">
+                <IconX size={18} />
               </button>
             </div>
             <form onSubmit={submitIncident}>
@@ -1378,8 +1395,8 @@ export default function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Issue Disciplinary Sanction</h3>
-              <button className="modal-close" onClick={() => setModalSanction(false)}>
-                ✕
+              <button className="modal-close" onClick={() => setModalSanction(false)} aria-label="Close modal">
+                <IconX size={18} />
               </button>
             </div>
             <form onSubmit={submitSanction}>
@@ -1506,8 +1523,8 @@ export default function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Log Pastoral Counselling Session</h3>
-              <button className="modal-close" onClick={() => setModalCounselling(false)}>
-                ✕
+              <button className="modal-close" onClick={() => setModalCounselling(false)} aria-label="Close modal">
+                <IconX size={18} />
               </button>
             </div>
             <form onSubmit={submitCounselling}>
@@ -1591,8 +1608,8 @@ export default function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Award Positive Merit Commendation</h3>
-              <button className="modal-close" onClick={() => setModalMerit(false)}>
-                ✕
+              <button className="modal-close" onClick={() => setModalMerit(false)} aria-label="Close modal">
+                <IconX size={18} />
               </button>
             </div>
             <form onSubmit={submitMerit}>
@@ -1666,8 +1683,8 @@ export default function App() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Enroll Student into SDMS</h3>
-              <button className="modal-close" onClick={() => setModalStudent(false)}>
-                ✕
+              <button className="modal-close" onClick={() => setModalStudent(false)} aria-label="Close modal">
+                <IconX size={18} />
               </button>
             </div>
             <form onSubmit={submitStudent}>
@@ -1770,8 +1787,8 @@ export default function App() {
           <div className="modal-card modal-card-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Student Conduct Dossier</h3>
-              <button className="modal-close" onClick={() => setSelectedStudentProfile(null)}>
-                ✕
+              <button className="modal-close" onClick={() => setSelectedStudentProfile(null)} aria-label="Close dossier">
+                <IconX size={18} />
               </button>
             </div>
             <div className="modal-body">
@@ -1795,7 +1812,7 @@ export default function App() {
                 </div>
                 <div>
                   <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
-                    🖨️ Print Conduct Sheet
+                    <IconPrinter size={15} /> Print Conduct Sheet
                   </button>
                 </div>
               </div>

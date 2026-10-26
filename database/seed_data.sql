@@ -49,12 +49,12 @@ ON CONFLICT (class_id) DO UPDATE SET
 -- Password hash: $2y$10$Qb6uR.rlUIpbYIvxqmwyIesgxAaFHdvYLAyOj7.MtQeJQmJ4vzJUO
 INSERT INTO users (user_id, username, password_hash, full_name, role, linked_id, is_active)
 VALUES 
-    (1, 'adong.grace', '$2y$10$Qb6uR.rlUIpbYIvxqmwyIesgxAaFHdvYLAyOj7.MtQeJQmJ4vzJUO', 'Grace Adong', 'Head Teacher', 1, TRUE),
-    (2, 'okello.david', '$2y$10$Qb6uR.rlUIpbYIvxqmwyIesgxAaFHdvYLAyOj7.MtQeJQmJ4vzJUO', 'David Okello', 'Discipline Master', 2, TRUE),
-    (3, 'atwine.sarah', '$2y$10$Qb6uR.rlUIpbYIvxqmwyIesgxAaFHdvYLAyOj7.MtQeJQmJ4vzJUO', 'Sarah Atwine', 'Counsellor', 3, TRUE),
-    (4, 'mugisha.brian', '$2y$10$Qb6uR.rlUIpbYIvxqmwyIesgxAaFHdvYLAyOj7.MtQeJQmJ4vzJUO', 'Brian Mugisha', 'Class Teacher', 4, TRUE),
-    (5, 'kembabazi.agnes', '$2y$10$Qb6uR.rlUIpbYIvxqmwyIesgxAaFHdvYLAyOj7.MtQeJQmJ4vzJUO', 'Agnes Kembabazi', 'Deputy Head Teacher', 5, TRUE),
-    (6, 'admin', '$2y$10$Qb6uR.rlUIpbYIvxqmwyIesgxAaFHdvYLAyOj7.MtQeJQmJ4vzJUO', 'System Administrator', 'Administrator', 6, TRUE)
+    (1, 'adong.grace', '$2y$10$trFE.MGlmrGdjgPov7qjCuyBqzmvTjc0zIJrjzDopPiLzOJpFERXW', 'Grace Adong', 'Head Teacher', 1, TRUE),
+    (2, 'okello.david', '$2y$10$trFE.MGlmrGdjgPov7qjCuyBqzmvTjc0zIJrjzDopPiLzOJpFERXW', 'David Okello', 'Discipline Master', 2, TRUE),
+    (3, 'atwine.sarah', '$2y$10$trFE.MGlmrGdjgPov7qjCuyBqzmvTjc0zIJrjzDopPiLzOJpFERXW', 'Sarah Atwine', 'Counsellor', 3, TRUE),
+    (4, 'mugisha.brian', '$2y$10$trFE.MGlmrGdjgPov7qjCuyBqzmvTjc0zIJrjzDopPiLzOJpFERXW', 'Brian Mugisha', 'Class Teacher', 4, TRUE),
+    (5, 'kembabazi.agnes', '$2y$10$trFE.MGlmrGdjgPov7qjCuyBqzmvTjc0zIJrjzDopPiLzOJpFERXW', 'Agnes Kembabazi', 'Deputy Head Teacher', 5, TRUE),
+    (6, 'admin', '$2y$10$trFE.MGlmrGdjgPov7qjCuyBqzmvTjc0zIJrjzDopPiLzOJpFERXW', 'System Administrator', 'Administrator', 6, TRUE)
 ON CONFLICT (user_id) DO UPDATE SET
     username = EXCLUDED.username,
     full_name = EXCLUDED.full_name,

@@ -24,11 +24,19 @@ final class AuthService
 
     public function login(string $username, string $password): array
     {
+        // Support login via username, staff email, staff number, or student number
         $statement = $this->database->prepare(
-            'SELECT user_id, username, password_hash, full_name, role, linked_id, is_active
-             FROM users WHERE username = :username LIMIT 1'
+            'SELECT u.user_id, u.username, u.password_hash, u.full_name, u.role, u.linked_id, u.is_active
+             FROM users u
+             LEFT JOIN staff s ON s.staff_id = u.linked_id
+             LEFT JOIN students st ON st.student_id = u.linked_id
+             WHERE u.username = :ident
+                OR s.email = :ident
+                OR s.staff_no = :ident
+                OR st.admission_no = :ident
+             LIMIT 1'
         );
-        $statement->execute(['username' => $username]);
+        $statement->execute(['ident' => $username]);
         $user = $statement->fetch();
 
         if (!$user || !$user['is_active'] || !password_verify($password, $user['password_hash'])) {

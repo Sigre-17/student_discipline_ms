@@ -47,6 +47,7 @@ export const api = {
     return data;
   },
   me: () => request('/auth/me'),
+  testCredentials: () => request('/test-credentials'),
 
   // Dashboard & Metrics
   dashboardStats: () => request('/dashboard/stats'),
